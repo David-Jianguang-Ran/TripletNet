@@ -17,3 +17,5 @@ remember this project is meant to explore triplet loss function and training ima
 - _no inheritance allowed!_ <= lets not be silly here, oo has its place just like functional
 
 - keep in functional for the confusing bits (not strict)
+
+

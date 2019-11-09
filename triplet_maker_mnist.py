@@ -28,9 +28,9 @@ class MnistTripletGenerator(Sequence):
   (make sure each batch contains each hand written number)
   
   """
-  def __init__(self, batch_size, *args, **kwargs):
+  def __init__(self, batch_size, data_path, *args, **kwargs):
     self.batch_size = batch_size
-    self.data_source = pd.read_csv("./mnist/train.csv")
+    self.data_source = pd.read_csv(data_path)
     
   def __len__(self):
     '''

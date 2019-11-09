@@ -1,6 +1,7 @@
 import keras
 import tensorflow
 import code
+import time
 
 from keras import backend
 from keras.models import Model
@@ -9,7 +10,14 @@ from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape
 from triplet_maker_mnist import MnistTripletGenerator
 
 
-def triplet_loss_with_arg(embedding_length, alpha=0.0):
+# Settings
+DATA_PATH = "./mnist/fashion-mnist_train.csv"
+
+BATCH_SIZE = 256
+PRE_PROCESS_WORKERS = 8
+
+
+def get_triplet_loss_with_arg(embedding_length=256, alpha=1.0):
   
   def distance_function(v1, v2):
     '''
@@ -39,7 +47,7 @@ def triplet_loss_with_arg(embedding_length, alpha=0.0):
   return triplet_loss
 
 
-def test_network_main():
+def test_train_network(alpha=1.0,epochs=2):
   
   def add_inception_module(input_node, layer_name_prefix):
     """
@@ -66,15 +74,15 @@ def test_network_main():
   # lets make our encoder network
   shared_model_input = Input((28,28,1,))
   a = add_inception_module(shared_model_input,layer_name_prefix="inception_first")
-  b = MaxPool2D((2,2),padding="same")(a)
+  b = MaxPool2D((4,4),padding="same")(a)
   c = add_inception_module(b,layer_name_prefix="inception_second")
-  d = MaxPool2D((2,2),padding="same")(c)
+  d = MaxPool2D((3,3),padding="same")(c)
   e = add_inception_module(d,layer_name_prefix="inception_third")
-  f = Flatten()(e)
+  f = MaxPool2D((3,3),padding="same")(e)
+  g = Flatten()(f)
   
-  shared_model = Model(inputs=shared_model_input,outputs=f,name="shared_encoder_network")
+  shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
   shared_model.summary()
-  
   
   # # run each picture through the shared encoder network
   # anchor = Input((28,28,1,),name="anchor")
@@ -83,19 +91,19 @@ def test_network_main():
 
   concat_input = Input((2352,))
 
-  def _get_slicer_at(order):
+  def _get_slicer_at(index):
     '''
 
-    :param order: int encoding fist second or third slice of the original input
+    :param index: int encoding fist second or third slice of the original input
     :return: function for slicing
     '''
     def _slicer(input):
-      return input[:,784 * order : 784 * (order + 1)]
+      return input[:, 784 * index: 784 * (index + 1)]
     return _slicer
 
-  anchor = Reshape((28,28,1))(Lambda(_get_slicer_at(0))(concat_input))
-  positive = Reshape((28,28,1))(Lambda(_get_slicer_at(1))(concat_input))
-  negative = Reshape((28,28,1))(Lambda(_get_slicer_at(2))(concat_input))
+  anchor = Reshape((28,28,1))(Lambda(_get_slicer_at(0),name="slicer_a")(concat_input))
+  positive = Reshape((28,28,1))(Lambda(_get_slicer_at(1),name='slicer_p')(concat_input))
+  negative = Reshape((28,28,1))(Lambda(_get_slicer_at(2),name='slicer_n')(concat_input))
 
   anchor_encoded = shared_model(anchor)
   positive_encoded = shared_model(positive)
@@ -104,19 +112,48 @@ def test_network_main():
   predictions = Concatenate(axis=1)([anchor_encoded,positive_encoded,negative_encoded])
   
   model = Model(inputs=[concat_input],outputs=[predictions])
-  model.compile(loss=triplet_loss_with_arg(12544,alpha=0.5),optimizer='adam')
+  model.compile(loss=get_triplet_loss_with_arg(alpha=alpha), optimizer='adam')
   model.summary()
 
   print("starting training session")
 
-  test_data_generator = MnistTripletGenerator(1000)
+  test_data_generator = MnistTripletGenerator(BATCH_SIZE,DATA_PATH)
 
   model.fit_generator(
     generator=test_data_generator,
+    workers=PRE_PROCESS_WORKERS,
+    epochs=epochs,
+    use_multiprocessing=True,
   )
 
-  code.interact(local=locals())
-  
+  test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
+
+  eval_loss = model.evaluate_generator(
+    generator=test_eval_data_generator,
+    workers=PRE_PROCESS_WORKERS,
+    use_multiprocessing=True
+  )
+
+  save_path = "./trained_models/encoderII-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
+
+  shared_model.save(save_path)
+
+  return """model saved to path {}""".format(save_path)
 
 if __name__=="__main__":
-  test_network_main()
+  orders = [
+    (100,5),
+    (1000,5),
+    (10000,5)
+  ]
+
+  # for each_order in orders:
+  test_train_network(1000,5)
+
+  # moddie = keras.models.load_model("trained_models/encoder-t1573264791-a10000-e7-l1618.h5",
+  #                                  custom_objects={
+  #                                    "triplet_loss" : get_triplet_loss_with_arg(al)
+  #                                  })
+
+
+
