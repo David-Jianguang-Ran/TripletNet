@@ -19,3 +19,14 @@ remember this project is meant to explore triplet loss function and training ima
 - keep in functional for the confusing bits (not strict)
 
 
+## notes on trained networks
+
+### Encoders
+
+- encoder - first version of network, using maxpooling and 3 inception modules, outputing 4k vector
+
+- encoderII - similar to above, outputing a smaller 256-D vector 
+
+- encoderIII - similar to above but using average pooling, outputing 256-D vector
+-- this network seem to have better performance compared to above 
+-- due to less 'information loss' at average pooling layers

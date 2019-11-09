@@ -5,9 +5,9 @@ import time
 
 from keras import backend
 from keras.models import Model
-from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape, Lambda
+from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape, Lambda, AveragePooling2D
 
-from triplet_maker_mnist import MnistTripletGenerator
+from data_generator import MnistTripletGenerator
 
 
 # Settings
@@ -74,11 +74,11 @@ def test_train_network(alpha=1.0,epochs=2):
   # lets make our encoder network
   shared_model_input = Input((28,28,1,))
   a = add_inception_module(shared_model_input,layer_name_prefix="inception_first")
-  b = MaxPool2D((4,4),padding="same")(a)
+  b = AveragePooling2D((4,4),padding="same")(a)
   c = add_inception_module(b,layer_name_prefix="inception_second")
-  d = MaxPool2D((3,3),padding="same")(c)
+  d = AveragePooling2D((3,3),padding="same")(c)
   e = add_inception_module(d,layer_name_prefix="inception_third")
-  f = MaxPool2D((3,3),padding="same")(e)
+  f = AveragePooling2D((3,3),padding="same")(e)
   g = Flatten()(f)
   
   shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
@@ -134,21 +134,22 @@ def test_train_network(alpha=1.0,epochs=2):
     use_multiprocessing=True
   )
 
-  save_path = "./trained_models/encoderII-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
+  save_path = "./trained_models/encoderIII-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
 
   shared_model.save(save_path)
 
   return """model saved to path {}""".format(save_path)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
   orders = [
-    (100,5),
-    (1000,5),
-    (10000,5)
+    (100,4),
+    (1000,4),
+    (10000,4)
   ]
 
-  # for each_order in orders:
-  test_train_network(1000,5)
+  for each_order in orders:
+    test_train_network(each_order[0],each_order[1])
 
   # moddie = keras.models.load_model("trained_models/encoder-t1573264791-a10000-e7-l1618.h5",
   #                                  custom_objects={

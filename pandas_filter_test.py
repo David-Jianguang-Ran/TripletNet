@@ -6,7 +6,7 @@ import code
 import random
 
 
-from triplet_maker_mnist import MnistTripletGenerator
+from data_generator import MnistTripletGenerator
 
 # mnist_data = pd.read_csv("./mnist/train.csv")
 #

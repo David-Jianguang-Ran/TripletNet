@@ -6,6 +6,27 @@ import math
 from keras.utils import Sequence
 
 
+class MnistDataGenerator(Sequence):
+  def __init__(self, batch_size,data_path):
+    self.batch_size = batch_size
+    self.data_source = pd.read_csv(data_path)
+
+  def __len__(self):
+    return len(self.data_source) // self.batch_size
+
+  def __getitem__(self, index):
+    sample = self.data_source.sample(self.batch_size)
+    sample = sample.reset_index().drop(columns=['index'])
+
+    y = sample['label']
+    x = sample.drop(columns=['label'])
+
+    print(x.head)
+
+    return x,y
+
+
+
 class MnistTripletGenerator(Sequence):
   """
   
