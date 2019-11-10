@@ -70,12 +70,12 @@ def test_train_network(alpha=1.0,epochs=2):
   
   # lets make our encoder network
   shared_model_input = Input((28,28,1,))
-  a = add_inception_module(shared_model_input,layer_name_prefix="inception_first")
-  b = AveragePooling2D((4,4),padding="same")(a)
-  c = add_inception_module(b,layer_name_prefix="inception_second")
-  d = AveragePooling2D((3,3),padding="same")(c)
-  e = add_inception_module(d,layer_name_prefix="inception_third")
-  f = AveragePooling2D((3,3),padding="same")(e)
+  a = Conv2D(32,(5,5),padding="valid",activation="relu")(shared_model_input)
+  b = Conv2D(32,(3,3),activation="relu")(a)
+  c = AveragePooling2D()(b)
+  d = Conv2D(64,(5,5),activation="relu")(c)
+  e = Conv2D(64, (3, 3), activation="relu")(d)
+  f = AveragePooling2D()(e)
   g = Flatten()(f)
   
   shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
@@ -131,7 +131,7 @@ def test_train_network(alpha=1.0,epochs=2):
     use_multiprocessing=True
   )
 
-  save_path = "./trained_models/encoderVI-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
+  save_path = "./trained_models/encoderBasic-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
 
   shared_model.save(save_path)
 
