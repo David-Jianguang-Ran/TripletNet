@@ -4,7 +4,7 @@ import code
 
 from keras.models import load_model, Model
 from keras.layers import Input, Reshape
-from data_generator import MnistDataGenerator
+from data_generator import MnistSingleGenerator
 
 
 def compute_embedding(model_path,batch_size, data_path):
@@ -16,7 +16,7 @@ def compute_embedding(model_path,batch_size, data_path):
 
     encoder_ready = Model(inputs=[input_tensor],output=[embedding])
 
-    data_gen = MnistDataGenerator(batch_size,data_path)
+    data_gen = MnistSingleGenerator(batch_size, data_path)
 
     output = pd.DataFrame()
     for batch_x, batch_y in data_gen:
@@ -29,9 +29,8 @@ def compute_embedding(model_path,batch_size, data_path):
 
 
 if __name__ == "__main__":
-    output = compute_embedding("trained_models/encoderIII-t1573333555-a1000-e4-l127.h5",512,"./mnist/fashion-mnist_test.csv")
-
-    output.to_csv("mnist/fashion_precomp_encoderIII_test.csv")
+    output = compute_embedding("trained_models/encoderIII-t1573332397-a100-e4-l16.h5",512,"./mnist/fashion-mnist_test.csv")
+    output.to_csv("mnist/fashion_precomp_encoderIII_test.csv", index=False)
 
 
 

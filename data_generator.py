@@ -6,7 +6,7 @@ import math
 from keras.utils import Sequence
 
 
-class MnistDataGenerator(Sequence):
+class MnistSingleGenerator(Sequence):
   def __init__(self, batch_size,data_path):
     self.batch_size = batch_size
     self.data_source = pd.read_csv(data_path)
@@ -20,10 +20,35 @@ class MnistDataGenerator(Sequence):
 
     y = sample['label']
     x = sample.drop(columns=['label'])
-
-    print(x.head)
-
     return x,y
+
+
+class MnistDoubleGenerator(Sequence):
+  def __init__(self,batch_size, data_path):
+    self.batch_size = batch_size
+    self.data_source = pd.read_csv(data_path)
+
+  def __len__(self):
+    return len(self.data_source) // self.batch_size
+
+  def __getitem__(self, index):
+    def encode_same_label(row):
+      if row[0] == row[257]:
+        return 1.0
+      else:
+        return 0.0
+
+    left = self.data_source.sample(self.batch_size)
+    left = left.reset_index().drop(columns=['index'])
+    right = self.data_source.sample(self.batch_size)
+    right = right.reset_index().drop(columns=['index'])
+
+    together = pd.concat([left,right],axis=1, join="outer", ignore_index=True, sort=False)
+
+    x = together.drop(columns=[0,257])
+    together['label'] = together.apply(encode_same_label)
+
+    return x, together['label']
 
 
 
@@ -82,8 +107,3 @@ class MnistTripletGenerator(Sequence):
     y = np.zeros((len(x), 1))
 
     return x, y
-  
-  def on_epoch_end(self):
-    pass
-
-
