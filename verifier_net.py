@@ -4,7 +4,7 @@ from keras.layers import Input, Dense, Concatenate
 from data_generator import MnistDoubleGenerator
 
 
-EPOCHS = 100
+EPOCHS = 10
 WORKERS = 4
 
 def train_verifier():
@@ -12,11 +12,12 @@ def train_verifier():
     #first define our network
 
     two_encodings = Input([512])
-    b = Dense(64, activation="relu", name="fully_connected_2")(two_encodings)
-    output = Dense(1,activation="sigmoid")(b)
+    a = Dense(256,activation="elu",name="fully_connected_1")(two_encodings)
+    b = Dense(128,activation="elu",name="fully_connected_2")(a)
+    output = Dense(1,activation="elu")(b)
 
     verifier = Model(inputs=[two_encodings], outputs=[output])
-    verifier.compile(optimizer="SGD",loss="hinge",metrics=['accuracy'])
+    verifier.compile(optimizer="adagrad",loss="squared_hinge",metrics=['accuracy'])
     verifier.summary()
 
     # get our data generator

@@ -2,7 +2,7 @@ import time
 
 from keras import backend
 from keras.models import Model
-from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape, Lambda, AveragePooling2D
+from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape, Lambda, AveragePooling2D, Activation
 
 from data_generator import MnistTripletGenerator
 
@@ -54,16 +54,16 @@ def test_train_network(alpha=1.0,epochs=2):
     :return:
     """
     
-    one_by_one = Conv2D(64, (1, 1), activation="relu", name=layer_name_prefix + "_1x1")(input_node)
+    one_by_one = Conv2D(64, (1, 1), activation="elu", name=layer_name_prefix + "_1x1")(input_node)
     
-    a = Conv2D(96, (1, 1), activation='relu', name=layer_name_prefix + "_pre_3x3")(input_node)
-    three_by_three = Conv2D(128,(3,3),padding="same",activation="relu",name=layer_name_prefix+"_3x3")(a)
+    a = Conv2D(96, (1, 1), activation='elu', name=layer_name_prefix + "_pre_3x3")(input_node)
+    three_by_three = Conv2D(128,(3,3),padding="same",activation="elu",name=layer_name_prefix+"_3x3")(a)
     
-    b = Conv2D(16, (1, 1), activation='relu', name=layer_name_prefix + "_pre_5x5")(input_node)
-    five_by_five = Conv2D(32,(5,5),padding="same",activation="relu",name=layer_name_prefix+"_5x5")(b)
+    b = Conv2D(16, (1, 1), activation='elu', name=layer_name_prefix + "_pre_5x5")(input_node)
+    five_by_five = Conv2D(32,(5,5),padding="same",activation="elu",name=layer_name_prefix+"_5x5")(b)
     
     c = MaxPool2D((3,3),padding="same",strides=1)(input_node)
-    pooled = Conv2D(32, (1, 1), activation="relu", name=layer_name_prefix + "_pooled")(c)
+    pooled = Conv2D(32, (1, 1), activation="elu", name=layer_name_prefix + "_pooled")(c)
 
     concat_output = Concatenate(axis=3)([one_by_one,three_by_three,five_by_five,pooled])
     return concat_output
@@ -131,7 +131,7 @@ def test_train_network(alpha=1.0,epochs=2):
     use_multiprocessing=True
   )
 
-  save_path = "./trained_models/encoderIII-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
+  save_path = "./trained_models/encoderVI-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
 
   shared_model.save(save_path)
 
@@ -140,9 +140,8 @@ def test_train_network(alpha=1.0,epochs=2):
 
 if __name__ == "__main__":
   orders = [
-    (100,4),
+    (100,2),
     (1000,4),
-    (10000,4)
   ]
 
   for each_order in orders:

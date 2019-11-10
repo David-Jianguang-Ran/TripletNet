@@ -29,8 +29,8 @@ def compute_embedding(model_path,batch_size, data_path):
 
 
 if __name__ == "__main__":
-    output = compute_embedding("trained_models/encoderIII-t1573332397-a100-e4-l16.h5",512,"./mnist/fashion-mnist_test.csv")
-    output.to_csv("mnist/fashion_precomp_encoderIII_test.csv", index=False)
+    output = compute_embedding("trained_models/encoderVI-t1573361390-a100-e2-l12.h5",512,"./mnist/fashion-mnist_train.csv")
+    output.to_csv("mnist/fashion_precomp_encoderIII_train.csv", index=False)
 
 
 

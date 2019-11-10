@@ -30,3 +30,30 @@ remember this project is meant to explore triplet loss function and training ima
 - encoderIII - similar to above but using average pooling, outputing 256-D vector
 -- this network seem to have better performance compared to above 
 -- due to less 'information loss' at average pooling layers
+
+- encoder IV(smaller network)<= seems like slightly worse performance, V(smaller network + sigmoid activation) <= hard to train, worse performance
+
+- encoder VI - three inception modules, average pooling, ELU activation instead of relu - 256-D vector, best one yet?
+
+## problem one: final accuracy (same/different classification) is stuck at 18% (20% when lady luck visits)
+- hypothesis I :
+    the verification network (fully connected binary classifier looking for same label class) is shit
+    
+    response : increased and decreased complexity of the network and tried various activation functions.
+    result : small increase to 20% acc, no material changes, my guess is that the verification network isn't the problem
+    
+- hypothesis II 
+    the encoder network is shit
+    
+    how can I test this? 
+     visually inspect the encodings see if these is anything interesting.
+        sooo..... I looked, there are many negative values with some HUGE positive clumps <=cool story bro
+            
+     project the 256-D vectors onto a 2-D space using PCA then visually inspect the data.
+      here is what I got ![](encoderVI_PCA_2D_plot.png)
+      My human eyes can spot 6 to 8 groups of dots. Not sure if this is a good result or not. 
+      Given that the plotted is only a 2-d projection of the embeddings, 
+      the 256-D embeddings should have more than enough space for seperating the 10 classes
+      Maybe a more robust encoder is needed.
+      
+      
