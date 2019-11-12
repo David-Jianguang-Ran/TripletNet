@@ -88,6 +88,8 @@ remember this project is meant to explore triplet loss function and training ima
    
 #### Finally
    I'm embarrassed to report that the trouble with the verifier network isn't with the network at all. 
-   But rather the MnistDoubleGenerator is the one spitting out bad data because of the 
+   But rather the MnistDoubleGenerator is the one spitting out bad data because of a missed param causing lambda function being applied along the wrong axis
+   I should definitely visually sanity check the data more often.  
+   Now we are up to 90% accuracy on classifying whether two images belong to the same class or not. I think this is a good start. 
       
       
