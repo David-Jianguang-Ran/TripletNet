@@ -46,9 +46,9 @@ class MnistDoubleGenerator(Sequence):
     together = pd.concat([left,right],axis=1, join="outer", ignore_index=True, sort=False)
 
     x = together.drop(columns=[0,257])
-    together['label'] = together.apply(encode_same_label)
+    y = together.apply(encode_same_label,axis=1)
 
-    return x, together['label']
+    return x, y
 
 
 

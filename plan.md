@@ -37,6 +37,12 @@ remember this project is meant to explore triplet loss function and training ima
 
 - encoder Basic - two layer convolution groups with average pool, seem to preform similarly to above 
 
+- encoder BII - similar network arch as above, but with sigmoid activation layers after pooling.
+ the aim is to 'squeeze' information from extereme values in one D to many dimensions in the embedding vector. 
+ generated significantly different cluster of embeddings
+ 
+- encoder BIV - similar network as above, except using selu activation to preserve negative activations, got 0.018 accuracy
+
 ## Is this a blog?
 
 ### problem one: final accuracy (same/different classification) is stuck at 18% (20% when lady luck visits)
@@ -50,7 +56,8 @@ remember this project is meant to explore triplet loss function and training ima
    - Back Again
     why? : encoder output visually inspected and cross checked with other encoders. it seems to have decent seperation in the groups
     The fully connect network may be the problem after all.
-    what to do? : use more classic algorithmic methods to classify  
+    what to do? : use more classic algorithmic methods to classify
+        so - used logistic regression (one sigmoid layer with shape 1) and got 0.025 accuracy
     
 #### hypothesis II 
    the encoder network is shit
@@ -71,5 +78,16 @@ remember this project is meant to explore triplet loss function and training ima
      I feel a little silly for using inception modules right off the bat now (although it may still be useful for more complex data like tree rings)
      I'm incline to say that the embedding is ok for now and some effort need to be put into the fully connected layers  
      ![](encoderBasic_PCA_2D_plot.png)
+     
+   By using sigmoid activations after the pooling layers to limit the output value of the network to between 1 and 0 (effectively normalizing the output)
+     a new encoding space is generated. using logistic regression classifier yielded 10% accuracy
+     This is the PCA of the encoding
+     ![](encoderBII_PCA_2D_plot.png)
+     
+   here is plot for encoderBIV ![](encoderBI_PCA_2D_plot.png)
+   
+#### Finally
+   I'm embarrassed to report that the trouble with the verifier network isn't with the network at all. 
+   But rather the MnistDoubleGenerator is the one spitting out bad data because of the 
       
       

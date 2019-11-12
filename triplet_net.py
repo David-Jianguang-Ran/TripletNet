@@ -10,8 +10,8 @@ from data_generator import MnistTripletGenerator
 # Settings
 DATA_PATH = "./mnist/fashion-mnist_train.csv"
 
-BATCH_SIZE = 256
-PRE_PROCESS_WORKERS = 8
+BATCH_SIZE = 1024
+PRE_PROCESS_WORKERS = 6
 
 
 def get_triplet_loss_with_arg(embedding_length=256, alpha=1.0):
@@ -70,12 +70,12 @@ def test_train_network(alpha=1.0,epochs=2):
   
   # lets make our encoder network
   shared_model_input = Input((28,28,1,))
-  a = Conv2D(32,(5,5),padding="valid",activation="relu")(shared_model_input)
-  b = Conv2D(32,(3,3),activation="relu")(a)
-  c = AveragePooling2D()(b)
-  d = Conv2D(64,(5,5),activation="relu")(c)
-  e = Conv2D(64, (3, 3), activation="relu")(d)
-  f = AveragePooling2D()(e)
+  a = Conv2D(32,(5,5),activation="selu")(shared_model_input)
+  b = Conv2D(32,(3,3),activation="selu")(a)
+  c = MaxPool2D()(b)
+  d = Conv2D(64,(5,5),activation="selu")(c)
+  e = Conv2D(64, (3, 3), activation="selu")(d)
+  f = Activation("sigmoid")(MaxPool2D()(e))
   g = Flatten()(f)
   
   shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
@@ -94,8 +94,8 @@ def test_train_network(alpha=1.0,epochs=2):
     :param index: int encoding fist second or third slice of the original input
     :return: function for slicing
     '''
-    def _slicer(input):
-      return input[:, 784 * index: 784 * (index + 1)]
+    def _slicer(input_tensor):
+      return backend.slice(input_tensor,(0, 784 * index), (-1,784))
     return _slicer
 
   anchor = Reshape((28,28,1))(Lambda(_get_slicer_at(0),name="slicer_a")(concat_input))
@@ -116,32 +116,29 @@ def test_train_network(alpha=1.0,epochs=2):
 
   test_data_generator = MnistTripletGenerator(BATCH_SIZE,DATA_PATH)
 
-  model.fit_generator(
-    generator=test_data_generator,
-    workers=PRE_PROCESS_WORKERS,
-    epochs=epochs,
-    use_multiprocessing=True,
-  )
+  for epoch_num in range(0,epochs + 1):
+    model.fit_generator(
+      generator=test_data_generator,
+      workers=PRE_PROCESS_WORKERS,
+      use_multiprocessing=True,
+    )
 
-  test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
+    test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
 
-  eval_loss = model.evaluate_generator(
-    generator=test_eval_data_generator,
-    workers=PRE_PROCESS_WORKERS,
-    use_multiprocessing=True
-  )
+    eval_loss = model.evaluate_generator(
+      generator=test_eval_data_generator,
+      workers=PRE_PROCESS_WORKERS,
+      use_multiprocessing=True
+    )
+    save_path = "./trained_models/encoderBIVM-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epoch_num,eval_loss)
+    shared_model.save(save_path)
 
-  save_path = "./trained_models/encoderBasic-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epochs,int(eval_loss))
-
-  shared_model.save(save_path)
-
-  return """model saved to path {}""".format(save_path)
+  return
 
 
 if __name__ == "__main__":
   orders = [
-    (100,2),
-    (1000,4),
+    (10,10),
   ]
 
   for each_order in orders:

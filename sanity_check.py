@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 
-data_frame = pd.read_csv("mnist/fashion_precomp_encoderBasic_train.csv")
+data_frame = pd.read_csv("mnist/fashion_precomp_encoderBIV_test.csv")
 labels = data_frame['label']
 encodings = data_frame.drop(columns=['label'])
 
@@ -17,6 +17,6 @@ pri_comp_df = pd.DataFrame(data=pri_comp,columns=pri_comp_labels)
 
 pri_comp_df.plot(kind="scatter",x='comp_1',y="comp_2")
 plt.title("plotting PCA shape={}".format(pri_comp_df.shape))
-plt.savefig("encoderBasic_PCA_2D_plot.png")
+plt.savefig("encoderBIV_PCA_2D_plot2.png")
 plt.show()
 
