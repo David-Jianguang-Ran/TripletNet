@@ -43,6 +43,10 @@ remember this project is meant to explore triplet loss function and training ima
  
 - encoder BIV - similar network as above, except using selu activation to preserve negative activations, got 0.018 accuracy
 
+### Verifiers
+
+- MnistVerifierBL - first verifier that isn't complete garbage. 89.3% accuracy.
+
 ## Is this a blog?
 
 ### problem one: final accuracy (same/different classification) is stuck at 18% (20% when lady luck visits)
@@ -92,4 +96,10 @@ remember this project is meant to explore triplet loss function and training ima
    I should definitely visually sanity check the data more often.  
    Now we are up to 90% accuracy on classifying whether two images belong to the same class or not. I think this is a good start. 
       
-      
+### problem two: final result is always 0 for the verifier
+   #### hypothesis I
+   The verifier was fed imbalanced data.
+   
+   response: reworked the double data generator 
+   result: with balanced data, the verifier can no longer get more than 50% accuracy with just a logistic regression unit.
+ 
