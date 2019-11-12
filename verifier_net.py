@@ -1,9 +1,11 @@
-from keras import Model
+import pandas as pd
+
+from keras.models import Model, load_model
 from keras import backend
-from keras.layers import Input, Dense, Concatenate
+from keras.layers import Input, Dense, Concatenate, Reshape
 from keras.losses import binary_crossentropy
 
-from data_generator import MnistDoubleGenerator
+from data_generator import MnistDoubleGenerator,MnistSingleGenerator
 
 
 EPOCHS = 5
@@ -24,7 +26,7 @@ def train_verifier():
     verifier.summary()
 
     # get our data generator
-    train_generator = MnistDoubleGenerator(4096,"./mnist/fashion_precomp_encoderBII_train.csv")
+    train_generator = MnistDoubleGenerator(4096,"./mnist/fashion_precomp_encoderBIV_train.csv")
 
     # for x, y  in train_generator:
     #     print(x)
@@ -35,14 +37,15 @@ def train_verifier():
         epochs=EPOCHS,
     )
 
-    test_generator = MnistDoubleGenerator(4096, "mnist/fashion_precomp_encoderBII_test.csv")
+    test_generator = MnistDoubleGenerator(4096, "mnist/fashion_precomp_encoderBIV_test.csv")
 
     eval_acc = verifier.evaluate_generator(
         test_generator
     )
 
-    print(eval_acc)
+    verifier.save("./saved_models/MnistVerifierB.h5")
+
 
 
 if __name__ == "__main__":
-    train_verifier()
+    pass
