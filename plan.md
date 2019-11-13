@@ -71,7 +71,7 @@ remember this project is meant to explore triplet loss function and training ima
     sooo..... I looked, there are many negative values with some HUGE positive clumps <=cool story bro
             
    project the 256-D vectors onto a 2-D space using PCA then visually inspect the data.
-    here is what I got ![](encoderVI_PCA_2D_plot.png)
+    here is what I got ![](visualizations/encoderVI_PCA_2D_plot.png)
     My human eyes can spot 6 to 8 groups of dots. Not sure if this is a good result or not. 
     Given that the plotted is only a 2-d projection of the embeddings, 
     the 256-D embeddings should have more than enough space for seperating the 10 classes
@@ -81,12 +81,12 @@ remember this project is meant to explore triplet loss function and training ima
      Given that this network has 1/6 the trainable params than the inception based ones, it's awesome that this one can perform just as well.
      I feel a little silly for using inception modules right off the bat now (although it may still be useful for more complex data like tree rings)
      I'm incline to say that the embedding is ok for now and some effort need to be put into the fully connected layers  
-     ![](encoderBasic_PCA_2D_plot.png)
+     ![](visualizations/encoderBasic_PCA_2D_plot.png)
      
    By using sigmoid activations after the pooling layers to limit the output value of the network to between 1 and 0 (effectively normalizing the output)
      a new encoding space is generated. using logistic regression classifier yielded 10% accuracy
      This is the PCA of the encoding
-     ![](encoderBII_PCA_2D_plot.png)
+     ![](visualizations/encoderBII_PCA_2D_plot.png)
      
    here is plot for encoderBIV ![](encoderBI_PCA_2D_plot.png)
    

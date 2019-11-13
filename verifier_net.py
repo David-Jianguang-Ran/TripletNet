@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import time
+import uuid
 
 from keras.models import Model, load_model
 from keras import backend
@@ -20,7 +21,6 @@ WORKERS = 6
 def train_verifier():
 
     #first define our network
-
     two_encodings = Input((512,))
     a = Dense(64, activation="selu")(two_encodings)
     b = Dense(64, activation="selu")(a)
@@ -74,7 +74,7 @@ def visually_evaluate(encoder_path, verifier_path, batch_count, lucky_number=0):
     runtime_model = Model(inputs=[pic_a, pic_b], outputs=[result])
     runtime_model.compile(optimizer="adam",loss="mean_squared_error",metrics=['accuracy'])
 
-    data_generator = MnistDemoGenerator(64,"./mnist/fashion-mnist_test.csv",batch_count=batch_count)
+    data_generator = MnistDemoGenerator(32,"./mnist/fashion-mnist_test.csv",batch_count=batch_count)
 
     for x_1, x_2, y in data_generator:
         image_1 = np.reshape(x_1,(-1,28,28,1))
@@ -89,13 +89,14 @@ def visually_evaluate(encoder_path, verifier_path, batch_count, lucky_number=0):
         print(output_string)
 
         if int(rounded) != int(truth):
+        # if True:
+            plt.figure(1)
+            plt.title(output_string)
+            plt.subplot(211)
             plt.imshow(image_1[lucky_number,:,:,0])
-            plt.title(output_string)
-            plt.show()
+            plt.subplot(212)
             plt.imshow(image_2[lucky_number,:,:,0])
-            plt.title(output_string)
-            plt.show()
-
+            plt.savefig(f"./visualizations/example-{uuid.uuid4()}-{int(rounded) == int(truth) and 'right' or 'wrong' }.png")
     return
 
 
@@ -103,5 +104,5 @@ def visually_evaluate(encoder_path, verifier_path, batch_count, lucky_number=0):
 
 if __name__ == "__main__":
     # train_verifier()
-    visually_evaluate("saved_models/MnistEncoderB.h5","saved_models/MnistVerifierBL-1573586610-0.893798828125.h5",25)
+    visually_evaluate("saved_models/MnistEncoderB.h5","saved_models/MnistVerifierBL-1573586610-0.893798828125.h5",50)
     pass
