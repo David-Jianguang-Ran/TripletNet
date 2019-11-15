@@ -3,14 +3,15 @@ import time
 from keras import backend
 from keras.models import Model
 from keras.layers import Conv2D, Concatenate, MaxPool2D, Flatten, Input, Reshape, Lambda, AveragePooling2D, Activation
+from keras.callbacks import EarlyStopping
 
 from data_generator import MnistTripletGenerator
 
 
 # Settings
-DATA_PATH = "./mnist/fashion-mnist_train.csv"
+DATA_PATH = "./mnist/train.csv"
 
-BATCH_SIZE = 1024
+BATCH_SIZE = 256
 PRE_PROCESS_WORKERS = 6
 
 
@@ -54,28 +55,28 @@ def test_train_network(alpha=1.0,epochs=2):
     :return:
     """
     
-    one_by_one = Conv2D(64, (1, 1), activation="elu", name=layer_name_prefix + "_1x1")(input_node)
+    one_by_one = Conv2D(64, (1, 1), activation="relu", name=layer_name_prefix + "_1x1")(input_node)
     
-    a = Conv2D(96, (1, 1), activation='elu', name=layer_name_prefix + "_pre_3x3")(input_node)
-    three_by_three = Conv2D(128,(3,3),padding="same",activation="elu",name=layer_name_prefix+"_3x3")(a)
+    a = Conv2D(96, (1, 1), activation='relu', name=layer_name_prefix + "_pre_3x3")(input_node)
+    three_by_three = Conv2D(128,(3,3),padding="same",activation="relu",name=layer_name_prefix+"_3x3")(a)
     
-    b = Conv2D(16, (1, 1), activation='elu', name=layer_name_prefix + "_pre_5x5")(input_node)
-    five_by_five = Conv2D(32,(5,5),padding="same",activation="elu",name=layer_name_prefix+"_5x5")(b)
+    b = Conv2D(16, (1, 1), activation='relu', name=layer_name_prefix + "_pre_5x5")(input_node)
+    five_by_five = Conv2D(32,(5,5),padding="same",activation="relu",name=layer_name_prefix+"_5x5")(b)
     
     c = MaxPool2D((3,3),padding="same",strides=1)(input_node)
-    pooled = Conv2D(32, (1, 1), activation="elu", name=layer_name_prefix + "_pooled")(c)
+    pooled = Conv2D(32, (1, 1), activation="relu", name=layer_name_prefix + "_pooled")(c)
 
     concat_output = Concatenate(axis=3)([one_by_one,three_by_three,five_by_five,pooled])
     return concat_output
   
   # lets make our encoder network
   shared_model_input = Input((28,28,1,))
-  a = Conv2D(32,(5,5),activation="selu")(shared_model_input)
-  b = Conv2D(32,(3,3),activation="selu")(a)
-  c = MaxPool2D()(b)
-  d = Conv2D(64,(5,5),activation="selu")(c)
-  e = Conv2D(64, (3, 3), activation="selu")(d)
-  f = Activation("sigmoid")(MaxPool2D()(e))
+  a = add_inception_module(shared_model_input,layer_name_prefix="inception_first")
+  b = MaxPool2D((4,4),padding="same")(a)
+  c = add_inception_module(b,layer_name_prefix="inception_second")
+  d = MaxPool2D((3,3),padding="same")(c)
+  e = add_inception_module(d,layer_name_prefix="inception_third")
+  f = Activation("sigmoid")(MaxPool2D((3,3),padding="same")(e))
   g = Flatten()(f)
   
   shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
@@ -116,29 +117,30 @@ def test_train_network(alpha=1.0,epochs=2):
 
   test_data_generator = MnistTripletGenerator(BATCH_SIZE,DATA_PATH)
 
-  for epoch_num in range(0,epochs + 1):
-    model.fit_generator(
-      generator=test_data_generator,
-      workers=PRE_PROCESS_WORKERS,
-      use_multiprocessing=True,
-    )
+  loss = model.fit_generator(
+    generator=test_data_generator,
+    workers=PRE_PROCESS_WORKERS,
+    use_multiprocessing=True,
+    epochs=epochs,
+    callbacks=[EarlyStopping(monitor="loss")]
+  )
 
-    test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
-
-    eval_loss = model.evaluate_generator(
-      generator=test_eval_data_generator,
-      workers=PRE_PROCESS_WORKERS,
-      use_multiprocessing=True
-    )
-    save_path = "./trained_models/encoderBIVM-t{}-a{}-e{}-l{}.h5".format(int(time.time()),alpha,epoch_num,eval_loss)
-    shared_model.save(save_path)
+  # test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
+  #
+  # eval_loss = model.evaluate_generator(
+  #   generator=test_eval_data_generator,
+  #   workers=PRE_PROCESS_WORKERS,
+  #   use_multiprocessing=True
+  # )
+  save_path = "./trained_models/MNIST-E1-t{}-a{}.h5".format(int(time.time()),alpha)
+  shared_model.save(save_path)
 
   return
 
 
 if __name__ == "__main__":
   orders = [
-    (10,10),
+    (10,4),
   ]
 
   for each_order in orders:

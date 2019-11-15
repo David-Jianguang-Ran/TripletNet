@@ -5,7 +5,10 @@ import code
 from keras.models import load_model, Model
 from keras.layers import Input, Reshape
 from data_generator import MnistSingleGenerator
+from sanity_check import sanity_check_encoding
 
+KEY_STR = "MNIST-E1-t1573849381-a10.h5"
+TYPE_STR = "train"
 
 def compute_embedding(model_path,batch_size, data_path):
     # load our model
@@ -29,8 +32,9 @@ def compute_embedding(model_path,batch_size, data_path):
 
 
 if __name__ == "__main__":
-    output = compute_embedding('trained_models/encoderBIVM-t1573514706-a10-e6-l1.3562307357788086.h5',512,"./mnist/fashion-mnist_train.csv")
-    output.to_csv("mnist/fashion_precomp_encoderBIV_train.csv", index=False)
+    output = compute_embedding(f"trained_models/{KEY_STR}",512,f"./mnist/{TYPE_STR}.csv")
+    output.to_csv(f"mnist/{KEY_STR}_{TYPE_STR}.csv", index=False)
+    sanity_check_encoding(output,key_str=KEY_STR)
 
 
 
