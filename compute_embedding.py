@@ -7,8 +7,9 @@ from keras.layers import Input, Reshape
 from data_generator import MnistSingleGenerator
 from sanity_check import sanity_check_encoding
 
-KEY_STR = "MNIST-E1-t1573849381-a10.h5"
+KEY_STR = "MNIST-E1.h5"
 TYPE_STR = "train"
+
 
 def compute_embedding(model_path,batch_size, data_path):
     # load our model

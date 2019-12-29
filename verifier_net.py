@@ -98,15 +98,3 @@ def visually_evaluate(encoder_path, verifier_path, batch_count, lucky_number=0):
             plt.imshow(image_2[lucky_number,:,:,0])
             plt.savefig(f"./visualizations/better_digits-{uuid.uuid4()}-{int(rounded) == int(truth) and 'right' or 'wrong' }.png")
     return
-
-
-
-
-if __name__ == "__main__":
-    # train_verifier()
-    visually_evaluate(
-        "trained_models/MNIST-E1-t1573849381-a10.h5",
-        "saved_models/MNIST-V1-1573849639-0.893505871295929.h5",
-        100
-    )
-    pass

@@ -1,7 +1,5 @@
-
 import pandas as pd
 import numpy as np
-import math
 
 from keras.utils import Sequence
 
@@ -35,7 +33,12 @@ class MnistSingleGenerator(MnistDataGenerator):
 
 
 class MnistDoubleGenerator(MnistDataGenerator):
+
   def _make_formatted_data(self):
+    """
+    returns pair of encodings with label 1.0 or 0.0 for same / diff all in one df
+    :return:
+    """
     def encode_same_label(row):
       if row[0] == row[257]:
         return 1.0
@@ -138,12 +141,4 @@ class MnistDemoGenerator(MnistDataGenerator):
       y = label_raw.apply(encode_same_label,axis=1)
 
       return left.drop(columns=['label']).to_numpy(), right.drop(columns=['label']).to_numpy(), y
-
-
-if __name__ == "__main__":
-  gene = MnistDoubleGenerator(2048,"./mnist/fashion_precomp_encoderBIV_train.csv")
-
-  for x, y in gene:
-    print(x)
-    print(y)
 

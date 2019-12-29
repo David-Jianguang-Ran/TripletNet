@@ -79,16 +79,10 @@ def test_train_network(alpha=1.0,epochs=2):
   f = Activation("sigmoid")(MaxPool2D((3,3),padding="same")(e))
   g = Flatten()(f)
   
-  shared_model = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
-  shared_model.summary()
-  
-  # # run each picture through the shared encoder network
-  # anchor = Input((28,28,1,),name="anchor")
-  # positive = Input((28,28,1,),name="positive")
-  # negative = Input((28,28,1,),name="negative")
+  encoder_network = Model(inputs=shared_model_input,outputs=g,name="shared_encoder_network")
+  encoder_network.summary()
 
-  concat_input = Input((2352,))
-
+  # split the input into three seperate images
   def _get_slicer_at(index):
     '''
 
@@ -99,21 +93,22 @@ def test_train_network(alpha=1.0,epochs=2):
       return backend.slice(input_tensor,(0, 784 * index), (-1,784))
     return _slicer
 
+  concat_input = Input((2352,))
   anchor = Reshape((28,28,1))(Lambda(_get_slicer_at(0),name="slicer_a")(concat_input))
   positive = Reshape((28,28,1))(Lambda(_get_slicer_at(1),name='slicer_p')(concat_input))
   negative = Reshape((28,28,1))(Lambda(_get_slicer_at(2),name='slicer_n')(concat_input))
 
-  anchor_encoded = shared_model(anchor)
-  positive_encoded = shared_model(positive)
-  negative_encoded = shared_model(negative)
+  # feed each image through the encoder
+  anchor_encoded = encoder_network(anchor)
+  positive_encoded = encoder_network(positive)
+  negative_encoded = encoder_network(negative)
 
+  # output concatenated encodings
   predictions = Concatenate(axis=1)([anchor_encoded,positive_encoded,negative_encoded])
   
   model = Model(inputs=[concat_input],outputs=[predictions])
   model.compile(loss=get_triplet_loss_with_arg(alpha=alpha), optimizer='adam')
   model.summary()
-
-  print("starting training session")
 
   test_data_generator = MnistTripletGenerator(BATCH_SIZE,DATA_PATH)
 
@@ -125,31 +120,16 @@ def test_train_network(alpha=1.0,epochs=2):
     callbacks=[EarlyStopping(monitor="loss")]
   )
 
-  # test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
-  #
-  # eval_loss = model.evaluate_generator(
-  #   generator=test_eval_data_generator,
-  #   workers=PRE_PROCESS_WORKERS,
-  #   use_multiprocessing=True
-  # )
-  save_path = "./trained_models/MNIST-E1-t{}-a{}.h5".format(int(time.time()),alpha)
-  shared_model.save(save_path)
+  test_eval_data_generator = MnistTripletGenerator(BATCH_SIZE,"./mnist/fashion-mnist_test.csv")
 
-  return
+  eval_loss = model.evaluate_generator(
+    generator=test_eval_data_generator,
+    workers=PRE_PROCESS_WORKERS,
+    use_multiprocessing=True
+  )
+  save_path = "./trained_models/MNIST-E1-t{}-a{}-l{].h5".format(int(time.time()),alpha,eval_loss[1])
+  encoder_network.save(save_path)
 
-
-if __name__ == "__main__":
-  orders = [
-    (10,4),
-  ]
-
-  for each_order in orders:
-    test_train_network(each_order[0],each_order[1])
-
-  # moddie = keras.models.load_model("trained_models/encoder-t1573264791-a10000-e7-l1618.h5",
-  #                                  custom_objects={
-  #                                    "triplet_loss" : get_triplet_loss_with_arg(al)
-  #                                  })
-
+  return save_path
 
 
